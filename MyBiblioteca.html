@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Minha Biblioteca de Animes</title>
+    <link rel="stylesheet" href="MyBiblioteca.css" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <!-- SweetAlert CDN -->
+    <style>
+      /* Estilos gerais */
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        padding: 0;
+        background-color: #f4f4f4;
+      }
+
+      h1 {
+        text-align: center;
+        margin: 20px 0;
+        color: #333;
+      }
+
+      /* Navbar */
+      nav {
+        background-color: #333;
+        color: white;
+        padding: 10px 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      nav a {
+        color: white;
+        margin: 0 15px;
+        text-decoration: none;
+        font-size: 18px;
+      }
+
+      nav a:hover {
+        text-decoration: underline;
+      }
+
+      /* Botões */
+      button {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 5px;
+      }
+
+      #back-button {
+        background-color: #4a90e2;
+        color: white;
+      }
+
+      #clear-library-button {
+        background-color: #e74c3c;
+        color: white;
+      }
+
+      #reviews-button {
+        background-color: #4caf50;
+        color: white;
+      }
+
+      /* Cards de anime */
+      .container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 20px;
+        padding: 20px;
+      }
+
+      .anime {
+        background-color: white;
+        padding: 15px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        width: 200px;
+        text-align: center;
+        transition: transform 0.3s ease;
+      }
+
+      .anime:hover {
+        transform: translateY(-10px);
+      }
+
+      .anime img {
+        max-width: 100%;
+        border-radius: 8px;
+        height: 250px;
+        object-fit: cover;
+      }
+
+      .anime h3 {
+        font-size: 18px;
+        margin: 10px 0;
+        color: #333;
+      }
+
+      .anime p {
+        color: #777;
+      }
+
+      /* Filtro de categorias */
+      .category-filter {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .category-filter select {
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+      }
+    </style>
+  </head>
+
+  <body>
+    <!-- Navbar -->
+    <nav>
+      <a href="#">Home</a>
+      <a href="#">Minha Biblioteca</a>
+      <a href="#">Resenhas</a>
+      <a href="#">Perfil</a>
+    </nav>
+
+    <h1>Minha Biblioteca de Animes</h1>
+
+    <!-- Botões de ação -->
+    <div style="text-align: center">
+      <button id="back-button" onclick="goBack()">Voltar</button>
+      <button id="clear-library-button" onclick="clearLibrary()">
+        Limpar Biblioteca
+      </button>
+      <button id="reviews-button" onclick="goToReviews()">
+        Minhas Resenhas
+      </button>
+      <button id="library-toggle-button" onclick="toggleLibraryView()">
+        Biblioteca Oculta
+      </button>
+    </div>
+
+    <!-- Filtro de Categorias -->
+    <div class="category-filter">
+      <label for="category-filter">Filtrar por Categoria:</label>
+      <select id="category-filter" onchange="filterByCategory()">
+        <option value="all">Todas as Categorias</option>
+      </select>
+    </div>
+
+    <!-- Exibição de Animes -->
+    <div class="container">
+      <div id="anime-list"></div>
+    </div>
+
+    <script>
+      const loggedInUser = JSON.parse(localStorage.getItem("loggedInUser"));
+
+      if (loggedInUser && loggedInUser.favorites) {
+        displayAnimes(loggedInUser.favorites);
+        populateCategoryFilter(loggedInUser.favorites);
+      } else {
+        document.getElementById("anime-list").innerHTML =
+          "<p>Nenhum anime favoritado ainda.</p>";
+      }
+
+      // Função para exibir os animes
+      function displayAnimes(animes) {
+        const animeList = document.getElementById("anime-list");
+        animeList.innerHTML = "";
+
+        if (animes.length === 0) {
+          animeList.innerHTML = "<p>Nenhum anime encontrado.</p>";
+        } else {
+          animes.forEach((anime) => {
+            const animeItem = document.createElement("div");
+            animeItem.classList.add("anime");
+            animeItem.innerHTML = `
+                        <h3>${anime.title}</h3>
+                        <img src="${anime.image}" alt="${anime.title}">
+                        <p>Categoria: ${anime.category}</p>
+                        <p>Progresso: ${
+                          anime.progress || 0
+                        } episódios assistidos</p>
+                        <input type="number" min="0" placeholder="Episódios assistidos" id="progress-${
+                          anime.id
+                        }">
+                        <button onclick="updateProgress('${
+                          anime.id
+                        }')">Atualizar Progresso</button>
+                        <button onclick="deleteAnime('${
+                          anime.id
+                        }')">Deletar Anime</button>
+                    `;
+            animeList.appendChild(animeItem);
+          });
+        }
+      }
+
+      // Função para atualizar o progresso com SweetAlert
+      function updateProgress(animeId) {
+        const progressInput = document.getElementById(`progress-${animeId}`);
+        const episodesWatched = parseInt(progressInput.value, 10);
+
+        if (isNaN(episodesWatched) || episodesWatched < 0) {
+          Swal.fire({
+            title: "Erro!",
+            text: "Por favor, insira um número válido de episódios assistidos.",
+            icon: "error",
+            confirmButtonText: "OK",
+          });
+          return;
+        }
+
+        const favorites = loggedInUser.favorites || [];
+        const animeToUpdate = favorites.find((anime) => anime.id === animeId);
+
+        if (animeToUpdate) {
+          animeToUpdate.progress = episodesWatched;
+          localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+          Swal.fire({
+            title: "Sucesso!",
+            text: `Progresso atualizado para ${episodesWatched} episódios assistidos.`,
+            icon: "success",
+            confirmButtonText: "OK",
+          });
+          displayAnimes(favorites);
+        }
+      }
+
+      // Função para deletar um anime com SweetAlert
+      function deleteAnime(animeId) {
+        Swal.fire({
+          title: "Tem certeza?",
+          text: "Você não poderá reverter essa ação!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Sim, deletar!",
+          cancelButtonText: "Cancelar",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            const favorites = loggedInUser.favorites || [];
+            const updatedFavorites = favorites.filter(
+              (anime) => anime.id !== animeId
+            );
+
+            loggedInUser.favorites = updatedFavorites;
+            localStorage.setItem("users", JSON.stringify(updatedFavorites));
+            displayAnimes(updatedFavorites);
+
+            Swal.fire({
+              title: "Deletado!",
+              text: "O anime foi deletado da sua biblioteca.",
+              icon: "success",
+              confirmButtonText: "OK",
+            });
+          }
+        });
+      }
+
+      // Função para limpar toda a biblioteca com SweetAlert
+      function clearLibrary() {
+        Swal.fire({
+          title: "Tem certeza?",
+          text: "Isso irá deletar todos os animes da sua biblioteca!",
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonText: "Sim, limpar!",
+          cancelButtonText: "Cancelar",
+        }).then((result) => {
+          if (result.isConfirmed) {
+            loggedInUser.favorites = [];
+            localStorage.setItem("loggedInUser", JSON.stringify(loggedInUser));
+            displayAnimes([]);
+            Swal.fire({
+              title: "Biblioteca limpa!",
+              text: "Todos os animes foram removidos.",
+              icon: "success",
+              confirmButtonText: "OK",
+            });
+          }
+        });
+      }
+
+      // Função para voltar à página anterior
+      function goBack() {
+        window.history.back();
+      }
+
+      // Função para redirecionar para a página de resenhas
+      function goToReviews() {
+        window.location.href = "resenha.html";
+      }
+
+      // Função para preencher as opções do filtro de categorias
+      function populateCategoryFilter(animes) {
+        const categoryFilter = document.getElementById("category-filter");
+        const categories = new Set(animes.map((anime) => anime.category));
+
+        categories.forEach((category) => {
+          const option = document.createElement("option");
+          option.value = category;
+          option.textContent = category;
+          categoryFilter.appendChild(option);
+        });
+      }
+
+      // Função para filtrar os animes por categoria
+      function filterByCategory() {
+        const selectedCategory =
+          document.getElementById("category-filter").value;
+        const filteredAnimes =
+          selectedCategory === "all"
+            ? loggedInUser.favorites
+            : loggedInUser.favorites.filter(
+                (anime) => anime.category === selectedCategory
+              );
+
+        displayAnimes(filteredAnimes);
+      }
+
+      let showingHiddenLibrary = false; // Estado para verificar qual biblioteca está sendo exibida
+
+      // Função para alternar entre biblioteca oculta e biblioteca normal
+      function toggleLibraryView() {
+        if (showingHiddenLibrary) {
+          // Exibir a biblioteca normal
+          const loggedInUser =
+            JSON.parse(localStorage.getItem("loggedInUser")) || {};
+          const favorites = loggedInUser.favorites || [];
+          displayAnimes(favorites, false); // Exibe a biblioteca normal
+
+          // Alterar o texto do botão para "Biblioteca Oculta"
+          document.getElementById("library-toggle-button").textContent =
+            "Ir para Biblioteca Oculta";
+
+          // Atualizar o estado
+          showingHiddenLibrary = false;
+        } else {
+          // Exibir a biblioteca oculta
+          const hiddenLibrary =
+            JSON.parse(localStorage.getItem("hiddenLibrary")) || [];
+          displayAnimes(hiddenLibrary, true); // Exibe a biblioteca oculta
+
+          // Alterar o texto do botão para "Ir para Biblioteca Normal"
+          document.getElementById("library-toggle-button").textContent =
+            "Ir para Biblioteca Normal";
+
+          // Atualizar o estado
+          showingHiddenLibrary = true;
+        }
+      }
+    </script>
+  </body>
+</html>

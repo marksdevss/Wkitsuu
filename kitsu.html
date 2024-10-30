@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Inicial</title>
+    <link rel="stylesheet" href="kitsu.css"> <!-- Link para o arquivo CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+
+<body>
+    <h1>Bem-vindo à Biblioteca de Animes</h1>
+
+      <!-- Navbar -->
+      <nav class="navbar">
+        <div class="container">
+            <div class="user-info" id="user-info"></div>
+            <ul class="nav-links">
+                <li><button id="edit-profile-button">Editar Perfil</button></li>
+                <li><button id="meu-perfil">Meu Perfil</button></li>
+                <li><button id="logout-button">Deslogar</button></li>
+                <li>
+                    <a href="MyBiblioteca.html">
+                        <button>Minha Biblioteca</button>
+                    </a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-profile-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Editar Perfil</h3>
+            <form id="update-profile-form">
+                <input type="text" id="new-username" placeholder="Novo Nome de Usuário">
+                <label for="new-profile-pic">Nova Foto de Perfil:</label>
+                <input type="file" id="new-profile-pic" accept="image/*">
+                <br>
+                <a href="redefinir-senha.html">Esqueceu a Senha? Redefina Aqui!</a>
+                <br><br><br>
+                <button type="submit">Salvar Alterações</button>
+            </form>
+        </div>
+    </div>
+
+        <div id="search-section" style="margin-top: 30px;">
+            <h2>Pesquisar Animes</h2>
+            <input type="text" id="search-query" placeholder="Digite o nome do anime" style="padding: 10px; width: 300px;">
+            <button onclick="searchAnimes()">
+                <i class="fas fa-search"></i> Pesquisar
+              </button>
+                          <br>
+            <button id="clear-search-button" onclick="clearSearch()">Limpar Pesquisa</button>
+        </div>
+        <div id="anime-list" style="margin-top: 20px;"></div>
+
+        <div class="pagination">
+            <button id="prev-btn" onclick="prevPage()">Anterior</button>
+            <button id="next-btn" onclick="nextPage()">Próximo</button>
+        </div>
+    </div>
+    <br>
+    <br>
+    <!-- <div id="user-recommendations" class="carousel">
+        <h2>Recomendações de Usuários para Seguir</h2>
+        <div class="carousel-container">
+            <button class="carousel-button" id="prev-user-button">❮</button>
+            <div class="carousel-items" id="user-carousel-items"></div>
+            <button class="carousel-button" id="next-user-button">❯</button>
+        </div>
+    </div> -->
+    
+
+    <script src="principal.js"></script> <!-- Referência ao arquivo JS -->
+</body>
+
+</html>
